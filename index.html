@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARKX — Smart Parking. Simple Access.</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Three.js & Controls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- GSAP for smooth animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+</head>
+<body class="dark-theme">
+
+    <!-- Custom Futuristic Cursor (Desktop Only) -->
+    <div id="customCursor" class="custom-cursor">
+        <div id="cursorDot" class="cursor-dot"></div>
+        <div id="cursorRing" class="cursor-ring">
+            <span id="cursorViewTag" class="cursor-view-tag">VIEW</span>
+        </div>
+    </div>
+
+    <!-- Startup Animation Loader Screen (<2 seconds) -->
+    <div id="startupLoader" class="startup-loader">
+        <div class="loader-content">
+            <svg class="loader-parking-line" viewBox="0 0 240 100">
+                <path d="M20 80 L80 20 L220 20" stroke="#00f2fe" stroke-width="3" fill="none" class="draw-path"/>
+                <circle cx="220" cy="20" r="4" fill="#00ff66" class="draw-dot"/>
+            </svg>
+            <h2 class="loader-title">PARK<span class="highlight-cyan">X</span></h2>
+            <p class="loader-tagline">Smart Parking. Simple Access.</p>
+        </div>
+        <button id="skipLoaderBtn" class="skip-loader-btn">SKIP ›</button>
+    </div>
+
+    <!-- Main Navigation Bar -->
+    <header class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#hero" class="nav-logo" data-cursor="hover">
+                <div class="logo-icon">
+                    <span class="logo-p">P</span>
+                    <span class="logo-dot"></span>
+                </div>
+                <span class="logo-text">PARK<span class="highlight-cyan">X</span></span>
+            </a>
+
+            <nav class="nav-links" id="navLinks">
+                <a href="#how-it-works" class="nav-item" data-cursor="hover">How It Works</a>
+                <a href="#app" class="nav-item" data-cursor="hover">App</a>
+                <a href="#hardware" class="nav-item" data-cursor="hover">Hardware</a>
+                <a href="#technology" class="nav-item" data-cursor="hover">Technology</a>
+                <a href="#team" class="nav-item" data-cursor="hover">Team</a>
+                <a href="#faq" class="nav-item" data-cursor="hover">FAQ</a>
+            </nav>
+
+            <div class="nav-actions">
+                <button class="btn btn-sm btn-primary glow-cyan-btn launch-demo-btn" data-cursor="magnet">LAUNCH DEMO</button>
+                <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main>
+        <!-- HERO SECTION -->
+        <section class="hero-section" id="hero">
+            <div class="container hero-container">
+                <div class="hero-content">
+                    <div class="pill-badge-cyan">
+                        <span class="pulse-cyan-dot"></span>
+                        FUTURISTIC SMART PARKING ECOSYSTEM
+                    </div>
+                    <h1 class="hero-title">
+                        PARKING,<br><span class="gradient-cyan">REIMAGINED.</span>
+                    </h1>
+                    <p class="hero-tagline">Smart Parking. Simple Access.</p>
+                    <p class="hero-description">
+                        A connected parking ecosystem combining digital booking, real-time slot detection, RFID access, automated entry and intelligent parking-time management.
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="#overview" class="btn btn-lg btn-glass" data-cursor="hover">EXPLORE PARKX</a>
+                        <button class="btn btn-lg btn-primary glow-cyan-btn launch-demo-btn" data-cursor="magnet">
+                            <span>LAUNCH DEMO</span>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3D Interactive Miniature Parking Model Canvas -->
+                <div class="hero-visual" data-cursor="3d">
+                    <div class="canvas-3d-wrapper" id="hero3DWrapper">
+                        <div id="threejs-canvas-container" class="threejs-canvas-container"></div>
+                        
+                        <!-- Floating HUD Overlay -->
+                        <div class="canvas-hud">
+                            <div class="hud-chip"><span class="indicator-dot green"></span> 3D REAL-TIME VIEW</div>
+                            <div class="hud-chip">DRAG TO ROTATE · SCROLL TO ZOOM</div>
+                        </div>
+
+                        <!-- 3D Slot Hover Tooltip (Raycaster HUD) -->
+                        <div id="slotHoverHUD" class="slot-hover-hud hidden">
+                            <span id="hudSlotId" class="hud-slot-id">P01</span>
+                            <div id="hudSlotStatus" class="hud-slot-status text-green">● AVAILABLE</div>
+                            <div class="hud-slot-detail">Sensor: <span id="hudSensorStatus">ONLINE</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- LIVE PARKING DASHBOARD (PARKX / LIVE) -->
+        <section class="section bg-darker" id="live-parking">
+            <div class="container">
+                <div class="section-header text-center">
+                    <div class="pill-badge-cyan mb-2">LIVE TELEMETRY</div>
+                    <h2 class="section-title">PARKX / LIVE</h2>
+                    <p class="section-subtitle">See the system think.</p>
+                </div>
+
+                <div class="dashboard-grid max-w-4xl">
+                    <!-- Live Stats Strip -->
+                    <div class="telemetry-bar glass-card">
+                        <div class="stat-pill">
+                            <span class="stat-label">AVAILABLE SLOTS</span>
+                            <span class="stat-value text-cyan" id="liveAvailableCount">2 / 3</span>
+                        </div>
+                        <div class="stat-pill">
+                            <span class="stat-label">ESP32 CONTROLLER</span>
+                            <span class="stat-value text-green">● ONLINE</span>
+                        </div>
+                        <div class="stat-pill">
+                            <span class="stat-label">RFID SCANNER</span>
+                            <span class="stat-value text-green">● READY</span>
+                        </div>
+                        <div class="stat-pill">
+                            <span class="stat-label">SERVO BARRIER</span>
+                            <span class="stat-value text-green">● READY</span>
+                        </div>
+                    </div>
+
+                    <!-- 3 Slots Interactive Grid -->
+                    <div class="slots-dashboard-grid">
+                        <!-- Slot P01 -->
+                        <div class="slot-live-card glass-card available" id="slotCardP01" data-slot="P01" data-cursor="hover">
+                            <div class="slot-card-header">
+                                <span class="slot-number">P01</span>
+                                <span class="badge badge-success status-tag">AVAILABLE</span>
+                            </div>
+                            <div class="slot-sensor-info">
+                                <span class="sensor-title">IR SENSOR</span>
+                                <span class="sensor-state text-green">CLEAR</span>
+                            </div>
+                            <div class="slot-booking-info">
+                                <span>BOOKING: <strong class="text-cyan">OPEN</strong></span>
+                            </div>
+                            <button class="btn btn-sm btn-primary glow-cyan-btn book-slot-btn" data-slot="P01" data-cursor="magnet">BOOK P01</button>
+                        </div>
+
+                        <!-- Slot P02 -->
+                        <div class="slot-live-card glass-card occupied" id="slotCardP02" data-slot="P02">
+                            <div class="slot-card-header">
+                                <span class="slot-number">P02</span>
+                                <span class="badge badge-danger status-tag">OCCUPIED</span>
+                            </div>
+                            <div class="slot-sensor-info">
+                                <span class="sensor-title">IR SENSOR</span>
+                                <span class="sensor-state text-danger">VEHICLE PRESENT</span>
+                            </div>
+                            <div class="slot-booking-info">
+                                <span>BOOKING: <strong class="text-muted">LOCKED</strong></span>
+                            </div>
+                            <button class="btn btn-sm btn-glass text-muted book-slot-btn" disabled>OCCUPIED</button>
+                        </div>
+
+                        <!-- Slot P03 -->
+                        <div class="slot-live-card glass-card available" id="slotCardP03" data-slot="P03" data-cursor="hover">
+                            <div class="slot-card-header">
+                                <span class="slot-number">P03</span>
+                                <span class="badge badge-success status-tag">AVAILABLE</span>
+                            </div>
+                            <div class="slot-sensor-info">
+                                <span class="sensor-title">IR SENSOR</span>
+                                <span class="sensor-state text-green">CLEAR</span>
+                            </div>
+                            <div class="slot-booking-info">
+                                <span>BOOKING: <strong class="text-cyan">OPEN</strong></span>
+                            </div>
+                            <button class="btn btn-sm btn-primary glow-cyan-btn book-slot-btn" data-slot="P03" data-cursor="magnet">BOOK P03</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- WHAT IS PARKX? (MINIMALIST HORIZONTAL TEXT REVEAL) -->
+        <section class="section text-reveal-section" id="overview">
+            <div class="container text-center">
+                <span class="section-label">VISION</span>
+                <h2 class="massive-statement">Parking should be smarter.</h2>
+                <div class="reveal-words-chain" id="revealWordsChain">
+                    <span class="reveal-word">BOOK</span>
+                    <span class="chain-dot">·</span>
+                    <span class="reveal-word">ACCESS</span>
+                    <span class="chain-dot">·</span>
+                    <span class="reveal-word">PARK</span>
+                    <span class="chain-dot">·</span>
+                    <span class="reveal-word">TRACK</span>
+                    <span class="chain-dot">·</span>
+                    <span class="reveal-word">EXIT</span>
+                </div>
+                <p class="reveal-description max-w-2xl">
+                    PARKX connects physical parking hardware with a digital parking application to create a seamless, connected parking experience.
+                </p>
+            </div>
+        </section>
+
+        <!-- PLAYFUL PARKING ANIMATION & SIMULATION ("WHAT IF PARKING COULD THINK?") -->
+        <section class="section bg-darker" id="simulation">
+            <div class="container">
+                <div class="section-header text-center">
+                    <div class="pill-badge-cyan mb-2">AUTONOMOUS SIMULATION</div>
+                    <h2 class="section-title">WHAT IF PARKING COULD THINK?</h2>
+                    <p class="section-description">Watch the automated arrival, RFID verification, and slot assignment in real time.</p>
+                </div>
+
+                <div class="simulation-stage glass-card max-w-4xl">
+                    <div class="sim-header">
+                        <div class="sim-status-box">
+                            <span class="pulse-cyan-dot"></span>
+                            <span id="simStepLabel" class="sim-step-text">STATUS: READY FOR VEHICLE</span>
+                        </div>
+                        <button id="replaySimBtn" class="btn btn-sm btn-primary glow-cyan-btn" data-cursor="magnet">
+                            <span>↻ REPLAY SIMULATION</span>
+                        </button>
+                    </div>
+
+                    <!-- 2D Schematic Simulation Arena -->
+                    <div class="sim-arena" id="simArena">
+                        <!-- Entrance Gate & RFID Station -->
+                        <div class="sim-gate-station">
+                            <div class="sim-rfid-pedestal" id="simRfidPedestal">
+                                <span class="pedestal-tag">RFID</span>
+                                <div class="rfid-wave" id="simRfidWave"></div>
+                            </div>
+                            <div class="sim-barrier-arm" id="simBarrierArm"></div>
+                        </div>
+
+                        <!-- 3 Parking Bays -->
+                        <div class="sim-slots-row">
+                            <div class="sim-bay" id="simBayP01">
+                                <span class="bay-tag">P01</span>
+                                <div class="bay-sensor" id="simSensorP01"></div>
+                                <span class="bay-status" id="simStatusP01">AVAILABLE</span>
+                            </div>
+                            <div class="sim-bay occupied" id="simBayP02">
+                                <span class="bay-tag">P02</span>
+                                <div class="bay-sensor active"></div>
+                                <span class="bay-status">OCCUPIED</span>
+                                <div class="bay-car-static">🚗</div>
+                            </div>
+                            <div class="sim-bay" id="simBayP03">
+                                <span class="bay-tag">P03</span>
+                                <div class="bay-sensor"></div>
+                                <span class="bay-status">AVAILABLE</span>
+                            </div>
+                        </div>
+
+                        <!-- Animated Vehicle -->
+                        <div class="sim-car" id="simVehicle">
+                            <div class="car-body">
+                                <span class="car-roof">PARKX</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="sim-log-strip">
+                        <div id="simLogText" class="sim-log-text font-mono">Telemetry: Press "REPLAY SIMULATION" to run end-to-end access test.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HOW IT WORKS (01 TO 09 HORIZONTAL SCROLL / TIMELINE) -->
+        <section class="section" id="how-it-works">
+            <div class="container">
+                <div class="section-header text-center">
+                    <span class="section-subtitle">WORKFLOW SEQUENCE</span>
+                    <h2 class="section-title">HOW IT WORKS</h2>
+                    <p class="section-description">Nine precision steps from digital selection to automated departure.</p>
+                </div>
+
+                <div class="horizontal-steps-container">
+                    <div class="step-card glass-card" data-cursor="hover">
+                        <span class="step-index">01</span>
+                        <h3 class="step-heading">CHOOSE</h3>
+                        <p class="step-body">Select an available parking slot through the app interface before arrival.</p>
+                    </div>
+
+                    <div class="step-card glass-card" data-cursor="hover">
+                        <span class="step-index">02</span>
+                        <h3 class="step-heading">BOOK</h3>
+                        <p class="step-body">Choose your parking duration with transparent hourly breakdown.</p>
+                    </div>
+
+                    <div class="step-card glass-card" data-cursor="hover">
+                        <span class="step-index">03</span>
+                        <h3 class="step-heading">PAY</h3>
+                        <p class="step-body">Complete the demonstration payment using Razorpay TEST mode.</p>
+                    </div>
+
+                    <div class="step-card glass-card" data-cursor="hover">
+                        <span class="step-index">04</span>
+                        <h3 class="step-heading">SCAN</h3>
+                        <p class="step-body">Authenticate contactless access using the RFID checkpoint card reader.</p>
+                    </div>
+
+                    <div class="step-card glass-card" data-cursor="hover">
+                        <span class="step-index">05</span>
+                        <h3 class="step-heading">ENTER</h3>
+                        <p class="step-body">The ESP32 microcontroller signals the servo mechanism to raise the entrance barrier.</p>
+                    </div>
+
+                    <div class="step-card glass-card" data-cursor="hover">
+                        <span class="step-index">06</span>
+                        <h3 class="step-heading">PARK</h3>
+                        <p class="step-body">Proximity sensors detect vehicle occupancy and immediately update slot status.</p>
+                    </div>
+
+                    <div class="step-card glass-card" data-cursor="hover">
+                        <span class="step-index">07</span>
+                        <h3 class="step-heading">TRACK</h3>
+                        <p class="step-body">PARKX tracks real-time parking duration, elapsed minutes, and expiry time.</p>
+                    </div>
+
+                    <div class="step-card glass-card" data-cursor="hover">
+                        <span class="step-index">08</span>
+                        <h3 class="step-heading">OVERSTAY</h3>
+                        <p class="step-body">Additional parking time is automatically calculated if scheduled duration expires.</p>
+                    </div>
+
+                    <div class="step-card glass-card" data-cursor="hover">
+                        <span class="step-index">09</span>
+                        <h3 class="step-heading">EXIT</h3>
+                        <p class="step-body">Complete exit authorization at the barrier and release the assigned slot.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- THE PARKX APP (3D SMARTPHONE MOCKUP WITH 6 SCREENS) -->
+        <section class="section bg-darker" id="app">
+            <div class="container">
+                <div class="section-header text-center">
+                    <span class="section-subtitle">MOBILE COMPANION</span>
+                    <h2 class="section-title">YOUR PARKING,<br>IN YOUR POCKET.</h2>
+                    <p class="section-description">Interactive UI preview across all 6 core application stages.</p>
+                </div>
+
+                <div class="app-showcase-grid">
+                    <!-- Screen Selector Switcher -->
+                    <div class="phone-tabs-column">
+                        <button class="phone-tab-btn active" data-screen="1" data-cursor="hover">
+                            <span class="tab-index">01</span>
+                            <div class="tab-text">
+                                <strong>Available Slots</strong>
+                                <small>Live slot map & vacancies</small>
+                            </div>
+                        </button>
+
+                        <button class="phone-tab-btn" data-screen="2" data-cursor="hover">
+                            <span class="tab-index">02</span>
+                            <div class="tab-text">
+                                <strong>Book Duration</strong>
+                                <small>Demo pricing selection</small>
+                            </div>
+                        </button>
+
+                        <button class="phone-tab-btn" data-screen="3" data-cursor="hover">
+                            <span class="tab-index">03</span>
+                            <div class="tab-text">
+                                <strong>Booking Confirmed</strong>
+                                <small>Slot reservation receipt</small>
+                            </div>
+                        </button>
+
+                        <button class="phone-tab-btn" data-screen="4" data-cursor="hover">
+                            <span class="tab-index">04</span>
+                            <div class="tab-text">
+                                <strong>Active Session</strong>
+                                <small>Live countdown & sensor sync</small>
+                            </div>
+                        </button>
+
+                        <button class="phone-tab-btn" data-screen="5" data-cursor="hover">
+                            <span class="tab-index">05</span>
+                            <div class="tab-text">
+                                <strong>Overstay Alert</strong>
+                                <small>Grace period & extra fees</small>
+                            </div>
+                        </button>
+
+                        <button class="phone-tab-btn" data-screen="6" data-cursor="hover">
+                            <span class="tab-index">06</span>
+                            <div class="tab-text">
+                                <strong>Exit Authorized</strong>
+                                <small>Final validation & release</small>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- 3D Realistic Phone Mockup -->
+                    <div class="phone-mockup-column" data-cursor="hover">
+                        <div class="phone-chassis">
+                            <div class="phone-speaker"></div>
+                            <div class="phone-notch"></div>
+                            <div class="phone-screen-glass">
+                                
+                                <!-- Screen 01: Available Slots -->
+                                <div class="app-screen-view active" id="appScreen1">
+                                    <div class="app-nav-header">
+                                        <span class="app-logo-text">PARK<strong>X</strong></span>
+                                        <span class="badge badge-success">● ONLINE</span>
+                                    </div>
+                                    <div class="app-metric-card">
+                                        <span>AVAILABLE SLOTS</span>
+                                        <h2>2 / 3</h2>
+                                    </div>
+                                    <div class="app-slot-listing">
+                                        <div class="app-slot-row available">
+                                            <span>P01</span>
+                                            <span class="badge-success">● AVAILABLE</span>
+                                        </div>
+                                        <div class="app-slot-row occupied">
+                                            <span>P02</span>
+                                            <span class="badge-danger">● OCCUPIED</span>
+                                        </div>
+                                        <div class="app-slot-row available">
+                                            <span>P03</span>
+                                            <span class="badge-success">● AVAILABLE</span>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-primary btn-block glow-cyan-btn app-action-btn launch-demo-btn">BOOK PARKING</button>
+                                </div>
+
+                                <!-- Screen 02: Book Parking -->
+                                <div class="app-screen-view hidden" id="appScreen2">
+                                    <div class="app-nav-header">
+                                        <span class="app-screen-title">BOOK PARKING</span>
+                                        <span class="badge badge-demo">DEMO PRICES</span>
+                                    </div>
+                                    <div class="app-selected-slot">
+                                        <span>SLOT: <strong>P01</strong></span>
+                                    </div>
+                                    <div class="app-duration-options">
+                                        <div class="dur-card"><span>1 Hour</span><strong>₹20</strong></div>
+                                        <div class="dur-card selected"><span>2 Hours</span><strong>₹35</strong></div>
+                                        <div class="dur-card"><span>3 Hours</span><strong>₹50</strong></div>
+                                        <div class="dur-card"><span>Custom</span><strong>—</strong></div>
+                                    </div>
+                                    <button class="btn btn-primary btn-block glow-cyan-btn app-action-btn launch-demo-btn">CONTINUE</button>
+                                </div>
+
+                                <!-- Screen 03: Parking Confirmed -->
+                                <div class="app-screen-view hidden" id="appScreen3">
+                                    <div class="app-nav-header">
+                                        <span class="app-screen-title">CONFIRMED</span>
+                                        <span class="badge badge-success">✓ ACTIVE</span>
+                                    </div>
+                                    <div class="app-receipt-card text-center">
+                                        <div class="success-tick">✓</div>
+                                        <h3>PARKING CONFIRMED</h3>
+                                        <p class="text-cyan font-mono font-bold">SLOT P01</p>
+                                        <div class="receipt-row"><span>Duration:</span><strong>2 Hours</strong></div>
+                                        <div class="receipt-row"><span>Paid (Demo):</span><strong>₹35</strong></div>
+                                        <div class="receipt-row"><span>Expires:</span><strong>17:28</strong></div>
+                                    </div>
+                                    <div class="app-disclaimer-sub">Demo transaction. No real charge.</div>
+                                </div>
+
+                                <!-- Screen 04: Active Parking -->
+                                <div class="app-screen-view hidden" id="appScreen4">
+                                    <div class="app-nav-header">
+                                        <span class="app-screen-title">ACTIVE PARKING</span>
+                                        <span class="badge badge-cyan">P01</span>
+                                    </div>
+                                    <div class="app-active-timer-box text-center">
+                                        <span class="timer-lbl">VEHICLE PARKED</span>
+                                        <div class="live-clock font-mono">01:42:35</div>
+                                        <div class="active-status-pills">
+                                            <span class="pill-mini green">IR SENSOR: OCCUPIED</span>
+                                            <span class="pill-mini green">RFID: AUTHORIZED</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Screen 05: Overstay -->
+                                <div class="app-screen-view hidden" id="appScreen5">
+                                    <div class="app-nav-header">
+                                        <span class="app-screen-title text-danger">OVERSTAY</span>
+                                        <span class="badge badge-danger">! ALERT</span>
+                                    </div>
+                                    <div class="app-overstay-card text-center">
+                                        <div class="overstay-icon">⚠️</div>
+                                        <h3>TIME EXPIRED</h3>
+                                        <p class="text-danger font-mono font-bold">12 MINUTES OVER</p>
+                                        <div class="receipt-row"><span>Additional Fee:</span><strong class="text-danger">₹10</strong></div>
+                                    </div>
+                                    <button class="btn btn-danger btn-block glow-cyan-btn app-action-btn launch-demo-btn">PAY TO EXIT</button>
+                                </div>
+
+                                <!-- Screen 06: Exit Authorized -->
+                                <div class="app-screen-view hidden" id="appScreen6">
+                                    <div class="app-nav-header">
+                                        <span class="app-screen-title">EXIT READY</span>
+                                        <span class="badge badge-success">✓ PASSED</span>
+                                    </div>
+                                    <div class="app-exit-card text-center">
+                                        <div class="success-tick">✓</div>
+                                        <h3>PAYMENT COMPLETE</h3>
+                                        <p class="font-mono">P01</p>
+                                        <h4 class="text-green font-bold">EXIT AUTHORIZED</h4>
+                                        <p class="text-xs text-muted mt-2">Barrier will open upon RFID scan.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAYMENT SECTION (PLAYFUL ANIMATED RAZORPAY TEST MODE) -->
+        <section class="section" id="payment">
+            <div class="container">
+                <div class="section-header text-center">
+                    <span class="section-subtitle">TRANSACTION PIPELINE</span>
+                    <h2 class="section-title">SEAMLESS DEMO PAYMENT</h2>
+                    <p class="section-description">Test billing flow utilizing simulated sandbox authorization.</p>
+                </div>
+
+                <div class="payment-flow-card glass-card max-w-3xl">
+                    <div class="pay-pipeline">
+                        <div class="pipeline-node">
+                            <span class="node-icon">💳</span>
+                            <span class="node-title">PARKING</span>
+                            <span class="node-val text-cyan">₹35</span>
+                        </div>
+                        <div class="pipeline-arrow">➔</div>
+                        <div class="pipeline-node">
+                            <span class="node-icon">🛡️</span>
+                            <span class="node-title">RAZORPAY</span>
+                            <span class="badge badge-demo">TEST MODE</span>
+                        </div>
+                        <div class="pipeline-arrow">➔</div>
+                        <div class="pipeline-node">
+                            <span class="node-icon">✓</span>
+                            <span class="node-title">PAYMENT</span>
+                            <span class="node-val text-green">VERIFIED</span>
+                        </div>
+                        <div class="pipeline-arrow">➔</div>
+                        <div class="pipeline-node">
+                            <span class="node-icon">🅿️</span>
+                            <span class="node-title">PARKING</span>
+                            <span class="node-val text-green">ACTIVE</span>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <div class="demo-pay-notice">
+                            “Payments shown on this website are demonstration payments using Razorpay TEST/SANDBOX mode.”
+                        </div>
+                        <button class="btn btn-primary glow-cyan-btn mt-3 launch-demo-btn" data-cursor="magnet">
+                            TRY DEMO PAYMENT
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HARDWARE SECTION & INTERACTION ("FROM CODE TO CONCRETE.") -->
+        <section class="section bg-darker" id="hardware">
+            <div class="container">
+                <div class="section-header text-center">
+                    <span class="section-subtitle">PHYSICAL PROTOTYPE</span>
+                    <h2 class="section-title">FROM CODE<br>TO CONCRETE.</h2>
+                    <p class="section-description">Interactive exploded layout of the PARKX embedded hardware architecture.</p>
+                </div>
+
+                <!-- Hardware Interactive Sandbox -->
+                <div class="hardware-sandbox-strip glass-card max-w-4xl mb-5">
+                    <div class="sandbox-title">⚡ INTERACTIVE COMPONENT TESTBENCH</div>
+                    <div class="sandbox-buttons">
+                        <button id="triggerIrTestBtn" class="btn btn-sm btn-glass" data-cursor="magnet">
+                            <span>📡 TRIGGER IR SENSOR</span>
+                        </button>
+                        <button id="triggerRfidTestBtn" class="btn btn-sm btn-glass" data-cursor="magnet">
+                            <span>🏷️ TAP RFID CARD</span>
+                        </button>
+                        <button id="triggerServoTestBtn" class="btn btn-sm btn-glass" data-cursor="magnet">
+                            <span>🚧 TOGGLE SERVO BARRIER</span>
+                        </button>
+                    </div>
+                    <div id="hardwareTestFeedback" class="sandbox-feedback font-mono">
+                        Ready. Click any hardware component to simulate hardware telemetry.
+                    </div>
+                </div>
+
+                <!-- Exploded Component Cards Grid -->
+                <div class="grid grid-3 hardware-grid">
+                    <div class="card glass-card hw-card" data-component="esp32" data-cursor="hover">
+                        <div class="hw-icon">⚡</div>
+                        <h3>ESP32</h3>
+                        <span class="hw-badge">EMBEDDED CONTROLLER</span>
+                        <p>Core microchip orchestrating sensor reads, RFID decoding, barrier servo angle, and web data sync.</p>
+                    </div>
+
+                    <div class="card glass-card hw-card" data-component="ir" data-cursor="hover">
+                        <div class="hw-icon">📡</div>
+                        <h3>3 × IR SENSORS</h3>
+                        <span class="hw-badge">SLOT DETECTION</span>
+                        <p>Detects vehicle presence inside slots P01, P02, and P03 through infrared beam reflections.</p>
+                    </div>
+
+                    <div class="card glass-card hw-card" data-component="servo" data-cursor="hover">
+                        <div class="hw-icon">🚧</div>
+                        <h3>1 × SERVO BARRIER</h3>
+                        <span class="hw-badge">ACCESS GATE</span>
+                        <p>High-torque servo mechanism physically rotating the barrier arm between 0° (closed) and 90° (open).</p>
+                    </div>
+
+                    <div class="card glass-card hw-card" data-component="rfid" data-cursor="hover">
+                        <div class="hw-icon">🏷️</div>
+                        <h3>RFID RC522</h3>
+                        <span class="hw-badge">AUTHENTICATION</span>
+                        <p>13.56MHz contactless reader identifying UID tags for automated gate admission.</p>
+                    </div>
+
+                    <div class="card glass-card hw-card" data-component="oled" data-cursor="hover">
+                        <div class="hw-icon">📺</div>
+                        <h3>OLED DISPLAY</h3>
+                        <span class="hw-badge">SLOT MONITOR</span>
+                        <p>High-contrast I2C display indicating slot availability status at the entry lane.</p>
+                    </div>
+
+                    <div class="card glass-card hw-card" data-component="lcd" data-cursor="hover">
+                        <div class="hw-icon">📟</div>
+                        <h3>LCD I2C (16×2)</h3>
+                        <span class="hw-badge">DRIVER DISPLAY</span>
+                        <p>Provides welcome messages, scan instructions, and live space countdowns to arriving drivers.</p>
+                    </div>
+
+                    <div class="card glass-card hw-card" data-component="buzzer" data-cursor="hover">
+                        <div class="hw-icon">🔔</div>
+                        <h3>BUZZER</h3>
+                        <span class="hw-badge">AUDIO FEEDBACK</span>
+                        <p>Sounds confirmation beeps upon successful scan and security alerts for unauthorized access attempts.</p>
+                    </div>
+
+                    <div class="card glass-card hw-card" data-component="dht11" data-cursor="hover">
+                        <div class="hw-icon">🌡️</div>
+                        <h3>DHT11 SENSOR</h3>
+                        <span class="hw-badge">ENVIRONMENTAL</span>
+                        <p>Monitors ambient temperature and humidity to ensure optimal parking facility conditions.</p>
+                    </div>
+
+                    <div class="card glass-card hw-card" data-component="ldr" data-cursor="hover">
+                        <div class="hw-icon">💡</div>
+                        <h3>LDR SENSOR</h3>
+                        <span class="hw-badge">SMART LIGHTING</span>
+                        <p>Detects ambient daylight levels to automatically trigger energy-efficient bay illumination.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SYSTEM ARCHITECTURE DIAGRAM (ANIMATED DATA PACKETS) -->
+        <section class="section" id="architecture">
+            <div class="container">
+                <div class="section-header text-center">
+                    <span class="section-subtitle">END-TO-END TOPOLOGY</span>
+                    <h2 class="section-title">SYSTEM ARCHITECTURE</h2>
+                    <p class="section-description">Animated bidirectional data flow connecting software and embedded hardware.</p>
+                </div>
+
+                <div class="arch-card glass-card max-w-4xl">
+                    <div class="arch-diagram">
+                        <!-- Layer 1: App -->
+                        <div class="arch-node" data-node="app">
+                            <span class="node-tag">CLIENT</span>
+                            <h4>PARKX APP</h4>
+                            <p>Mobile / Web UI</p>
+                        </div>
+
+                        <div class="arch-connector-line">
+                            <span class="packet-dot"></span>
+                        </div>
+
+                        <!-- Layer 2: Backend -->
+                        <div class="arch-node" data-node="backend">
+                            <span class="node-tag">SERVER</span>
+                            <h4>PARKX BACKEND</h4>
+                            <p>Node.js & Express</p>
+                        </div>
+
+                        <div class="arch-fork-container">
+                            <div class="arch-connector-line"><span class="packet-dot"></span></div>
+                            <div class="arch-connector-line"><span class="packet-dot"></span></div>
+                        </div>
+
+                        <!-- Layer 3: Database & Razorpay -->
+                        <div class="arch-split-row">
+                            <div class="arch-node sub" data-node="database">
+                                <span class="node-tag">STORAGE</span>
+                                <h4>DATABASE</h4>
+                                <p>Session State</p>
+                            </div>
+                            <div class="arch-node sub" data-node="razorpay">
+                                <span class="node-tag">GATEWAY</span>
+                                <h4>RAZORPAY TEST</h4>
+                                <p>Demo Billing</p>
+                            </div>
+                        </div>
+
+                        <div class="arch-connector-line">
+                            <span class="packet-dot"></span>
+                        </div>
+
+                        <!-- Layer 4: ESP32 -->
+                        <div class="arch-node highlight" data-node="esp32">
+                            <span class="node-tag">MCU</span>
+                            <h4>ESP32 CONTROLLER</h4>
+                            <p>Hardware Broker</p>
+                        </div>
+
+                        <div class="arch-connector-line">
+                            <span class="packet-dot"></span>
+                        </div>
+
+                        <!-- Layer 5: Sensors & Actuators -->
+                        <div class="arch-split-row">
+                            <div class="arch-node sub" data-node="ir">
+                                <h4>IR SENSORS</h4>
+                                <p>Slots P01 - P03</p>
+                            </div>
+                            <div class="arch-node sub" data-node="rfid">
+                                <h4>RFID RC522</h4>
+                                <p>Access Check</p>
+                            </div>
+                            <div class="arch-node sub" data-node="servo">
+                                <h4>SERVO BARRIER</h4>
+                                <p>Gate Control</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SMART PARKING LOGIC (VISUAL FLOW RIBBON) -->
+        <section class="section bg-darker" id="logic">
+            <div class="container">
+                <div class="section-header text-center">
+                    <span class="section-subtitle">LIFECYCLE ALGORITHM</span>
+                    <h2 class="section-title">SMART PARKING LOGIC</h2>
+                    <p class="section-description">A deterministic, automated state progression.</p>
+                </div>
+
+                <div class="logic-ribbon max-w-4xl">
+                    <div class="logic-chip active"><span>BOOK</span></div>
+                    <div class="logic-arrow">➔</div>
+                    <div class="logic-chip active"><span>PAY</span></div>
+                    <div class="logic-arrow">➔</div>
+                    <div class="logic-chip active"><span>SCAN</span></div>
+                    <div class="logic-arrow">➔</div>
+                    <div class="logic-chip active"><span>ENTER</span></div>
+                    <div class="logic-arrow">➔</div>
+                    <div class="logic-chip active"><span>PARK</span></div>
+                    <div class="logic-arrow">➔</div>
+                    <div class="logic-chip"><span>TRACK</span></div>
+                    <div class="logic-arrow">➔</div>
+                    <div class="logic-chip"><span>EXPIRE</span></div>
+                    <div class="logic-arrow">➔</div>
+                    <div class="logic-chip"><span>PAY TO EXIT</span></div>
+                    <div class="logic-arrow">➔</div>
+                    <div class="logic-chip"><span>EXIT</span></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TECHNOLOGY SECTION (FLOATING TECH CARDS) -->
+        <section class="section" id="technology">
+            <div class="container">
+                <div class="section-header text-center">
+                    <span class="section-subtitle">TECH STACK</span>
+                    <h2 class="section-title">BUILT WITH MODERN TECH</h2>
+                    <p class="section-description">Hardware and software components built for speed and reliability.</p>
+                </div>
+
+                <div class="grid grid-3 cards-grid">
+                    <div class="card glass-card tech-float-card" data-cursor="hover">
+                        <div class="card-icon cyan">⚡</div>
+                        <h3>ESP32</h3>
+                        <p>Embedded Controller handling GPIO interrupts and sensor telemetry.</p>
+                    </div>
+
+                    <div class="card glass-card tech-float-card" data-cursor="hover">
+                        <div class="card-icon cyan">📡</div>
+                        <h3>IR Sensors</h3>
+                        <p>Vehicle Detection modules positioned at slots P01, P02, and P03.</p>
+                    </div>
+
+                    <div class="card glass-card tech-float-card" data-cursor="hover">
+                        <div class="card-icon cyan">🏷️</div>
+                        <h3>RFID RC522</h3>
+                        <p>Contactless Access Authentication at entrance and exit barrier points.</p>
+                    </div>
+
+                    <div class="card glass-card tech-float-card" data-cursor="hover">
+                        <div class="card-icon cyan">🚧</div>
+                        <h3>Servo Mechanism</h3>
+                        <p>Automated Barrier arm actuation calibrated for smooth movement.</p>
+                    </div>
+
+                    <div class="card glass-card tech-float-card" data-cursor="hover">
+                        <div class="card-icon cyan">📺</div>
+                        <h3>OLED + LCD</h3>
+                        <p>Dual Information Displays providing real-time driver messaging.</p>
+                    </div>
+
+                    <div class="card glass-card tech-float-card" data-cursor="hover">
+                        <div class="card-icon cyan">💻</div>
+                        <h3>React / Web App</h3>
+                        <p>Modern frontend interface rendering live slot availability.</p>
+                    </div>
+
+                    <div class="card glass-card tech-float-card" data-cursor="hover">
+                        <div class="card-icon cyan">🟢</div>
+                        <h3>Node.js + Express</h3>
+                        <p>Lightweight backend server routing API commands to microcontrollers.</p>
+                    </div>
+
+                    <div class="card glass-card tech-float-card" data-cursor="hover">
+                        <div class="card-icon cyan">🗄️</div>
+                        <h3>Database</h3>
+                        <p>Session management storing active bookings and vehicle entry timestamps.</p>
+                    </div>
+
+                    <div class="card glass-card tech-float-card" data-cursor="hover">
+                        <div class="card-icon cyan">💳</div>
+                        <h3>Razorpay TEST</h3>
+                        <p>Payment demonstration environment simulating instant digital transactions.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SAFETY SECTION -->
+        <section class="section bg-darker" id="safety">
+            <div class="container">
+                <div class="safety-card glass-card max-w-3xl text-center">
+                    <div class="safety-icon-box">🛡️</div>
+                    <h2 class="section-title">SMART.<br>BUT ALWAYS SAFE.</h2>
+                    <p class="section-description mt-3">
+                        The physical prototype includes a manual emergency override so the barrier can be safely released at any time.
+                    </p>
+                    <div class="safety-note-box">
+                        <p>
+                            ⚠️ <strong>SAFETY FIRST:</strong> Payment authorization is a software demonstration feature and must never be used to intentionally trap a vehicle or person. Safety mechanisms override all automated locks.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PROJECT SHOWCASE ("MEET PARKX.") -->
+        <section class="section" id="showcase">
+            <div class="container text-center">
+                <span class="section-subtitle">PROTOTYPE PRESENTATION</span>
+                <h2 class="section-title">MEET PARKX.</h2>
+                <p class="section-description">Our three-slot physical prototype built for precision and transparency.</p>
+
+                <div class="showcase-card glass-card max-w-4xl mt-4">
+                    <div class="showcase-labels-grid">
+                        <div class="showcase-pill"><span class="pill-dot"></span> P01 · P02 · P03 SLOTS</div>
+                        <div class="showcase-pill"><span class="pill-dot"></span> IR DETECTION</div>
+                        <div class="showcase-pill"><span class="pill-dot"></span> RFID ENTRY</div>
+                        <div class="showcase-pill"><span class="pill-dot"></span> SERVO BARRIER</div>
+                        <div class="showcase-pill"><span class="pill-dot"></span> ESP32 CONTROL</div>
+                    </div>
+
+                    <div class="showcase-action-strip mt-4">
+                        <a href="#hero" class="btn btn-primary glow-cyan-btn" data-cursor="magnet">EXPLORE PROTOTYPE IN 3D</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TEAM SECTION -->
+        <section class="section bg-darker" id="team">
+            <div class="container">
+                <div class="section-header text-center">
+                    <span class="section-subtitle">COLLABORATION</span>
+                    <h2 class="section-title">BUILT BY<br>CURIOUS MINDS.</h2>
+                    <p class="section-description">Designed and developed as a collaborative technology project.</p>
+                </div>
+
+                <div class="team-cards-row max-w-2xl">
+                    <div class="team-card glass-card" data-cursor="hover">
+                        <div class="avatar-ring">H</div>
+                        <h3>HADI MUHAMMED MC</h3>
+                        <span class="class-tag">CLASS 10L</span>
+                    </div>
+
+                    <div class="team-connector-line">
+                        <span class="pulse-cyan-dot"></span>
+                    </div>
+
+                    <div class="team-card glass-card" data-cursor="hover">
+                        <div class="avatar-ring">M</div>
+                        <h3>MINHAL</h3>
+                        <span class="class-tag">CLASS 10H</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ SECTION (14 QUESTIONS INTERACTIVE ACCORDION) -->
+        <section class="section" id="faq">
+            <div class="container">
+                <div class="section-header text-center">
+                    <span class="section-subtitle">VISITOR CLARITY</span>
+                    <h2 class="section-title">FREQUENTLY ASKED QUESTIONS</h2>
+                    <p class="section-description">Clear answers regarding the PARKX prototype implementation.</p>
+                </div>
+
+                <div class="faq-accordion max-w-3xl">
+                    <!-- Q1 -->
+                    <div class="faq-item">
+                        <button class="faq-question" data-cursor="hover">
+                            <span>What is PARKX?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>PARKX is a smart parking prototype combining infrared space detection, RFID identification, automated barrier control, and software monitoring.</p>
+                        </div>
+                    </div>
+
+                    <!-- Q2 -->
+                    <div class="faq-item">
+                        <button class="faq-question" data-cursor="hover">
+                            <span>How does PARKX detect vehicles?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Each slot contains a dedicated IR proximity sensor that measures infrared reflections to detect vehicle presence accurately.</p>
+                        </div>
+                    </div>
+
+                    <!-- Q3 -->
+                    <div class="faq-item">
+                        <button class="faq-question" data-cursor="hover">
+                            <span>How does RFID access work?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Drivers scan an authorized RFID card or tag at the checkpoint. The reader decodes the unique ID and validates it with the controller to open the gate.</p>
+                        </div>
+                    </div>
+
+                    <!-- Q4 -->
+                    <div class="faq-item">
+                        <button class="faq-question" data-cursor="hover">
+                            <span>How does the barrier work?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>A precision servo motor physically raises the barrier arm when valid authorization is confirmed and closes it once the vehicle enters.</p>
+                        </div>
+                    </div>
+
+                    <!-- Q5 -->
+                    <div class="faq-item">
+                        <button class="faq-question" data-cursor="hover">
+                            <span>How does the app work?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>The companion web application communicates with the backend, allowing users to check live vacancies, choose durations, and view session status.</p>
+                        </div>
+                    </div>
+
+                    <!-- Q6 -->
+                    <div class="faq-item">
+                        <button class="faq-question" data-cursor="hover">
+                            <span>How does the parking timer work?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>When the car triggers the slot sensor, the controller logs an entry timestamp and runs a countdown timer based on the booked session length.</p>
+                        </div>
+                    </div>
+
+                    <!-- Q7 -->
+                    <div class="faq-item">
+                        <button class="faq-question" data-cursor="hover">
+                            <span>What happens during an overstay?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>If a vehicle remains parked beyond the booked duration, the system flags an overstay alert and computes supplementary demo parking fees upon exit.</p>
+                        </div>
+                    </div>
+
+                    <!-- Q8 -->
+                    <div class="faq-item">
+                        <button class="faq-question" data-cursor="hover">
+                            <span>Does PARKX use real money?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>No. PARKX is an educational prototype and does not process real currency under any circumstances.</p>
+                        </div>
+                    </div>
+
+                    <!-- Q9 -->
+                    <div class="faq-item">
+                        <button class="faq-question" data-cursor="hover">
+                            <span>Is Razorpay running in TEST mode?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Yes. All payment demonstrations utilize simulated sandbox / test credentials with zero financial liability.</p>
+                        </div>
+                    </div>
+
+                    <!-- Q10 -->
+                    <div class="faq-item">
+                        <button class="faq-question" data-cursor="hover">
+                            <span>Can PARKX support more parking slots?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Yes. By utilizing GPIO multiplexers or distributed wireless sensor nodes, the system architecture can expand to dozens of slots.</p>
+                        </div>
+                    </div>
+
+                    <!-- Q11 -->
+                    <div class="faq-item">
+                        <button class="faq-question" data-cursor="hover">
+                            <span>Does PARKX require Wi-Fi?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>The core sensor and gate logic run locally on the microcontroller. Wi-Fi is used to sync data with the cloud application.</p>
+                        </div>
+                    </div>
+
+                    <!-- Q12 -->
+                    <div class="faq-item">
+                        <button class="faq-question" data-cursor="hover">
+                            <span>What happens during an emergency?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>The barrier mechanism includes an emergency manual override release allowing instant vehicle passage regardless of software state.</p>
+                        </div>
+                    </div>
+
+                    <!-- Q13 -->
+                    <div class="faq-item">
+                        <button class="faq-question" data-cursor="hover">
+                            <span>Is PARKX a commercial parking service?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>No. PARKX is an educational and science exhibition prototype developed to demonstrate smart parking principles.</p>
+                        </div>
+                    </div>
+
+                    <!-- Q14 -->
+                    <div class="faq-item">
+                        <button class="faq-question" data-cursor="hover">
+                            <span>Are the displayed parking prices real?</span>
+                            <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>No. All rates (₹20, ₹35, ₹50) are demo placeholder values created strictly for presentation and user experience testing.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FINAL CTA -->
+        <section class="section final-cta-section text-center">
+            <div class="container">
+                <h2 class="massive-cta-title">READY TO<br><span class="gradient-cyan">PARK SMARTER?</span></h2>
+                <div class="hero-buttons justify-center mt-4">
+                    <button class="btn btn-lg btn-primary glow-cyan-btn launch-demo-btn" data-cursor="magnet">
+                        <span>LAUNCH PARKX DEMO</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                    </button>
+                    <a href="#hero" class="btn btn-lg btn-glass" data-cursor="hover">EXPLORE THE SYSTEM</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container footer-container">
+            <div class="footer-brand">
+                <div class="logo-text">PARK<span class="highlight-cyan">X</span></div>
+                <p class="footer-tagline">Smart Parking. Simple Access.</p>
+                <div class="footer-team-credit">
+                    <p>Project by: <strong>HADI MUHAMMED MC — 10L</strong> & <strong>MINHAL — 10H</strong></p>
+                </div>
+            </div>
+
+            <div class="footer-links">
+                <a href="#hero">Home</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#app">App</a>
+                <a href="#hardware">Hardware</a>
+                <a href="#technology">Technology</a>
+                <a href="#team">Team</a>
+                <a href="#faq">FAQ</a>
+            </div>
+
+            <div class="footer-copy">
+                <p>&copy; 2026 PARKX · Smart Parking Prototype · Educational / Science Exhibition Project</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- DEMO PAYMENT EXPERIENCE MODAL (RAZORPAY TEST / NO REAL MONEY) -->
+    <div id="demoPaymentModal" class="modal-overlay hidden">
+        <div class="modal-card glass-card">
+            <button id="closeDemoPayModalBtn" class="modal-close" aria-label="Close modal">&times;</button>
+
+            <!-- Screen 1: Booking Selection -->
+            <div id="demoBookScreen" class="pay-modal-screen">
+                <div class="modal-header text-center">
+                    <span class="badge badge-demo mb-2">DEMO PAYMENT — NO REAL MONEY</span>
+                    <h3>PARKX Booking</h3>
+                    <p class="text-sm text-muted">Select parking duration for demonstration.</p>
+                </div>
+
+                <div class="booking-summary-box">
+                    <div class="summary-row">
+                        <span>Parking Slot:</span>
+                        <strong id="demoSlotName">P01</strong>
+                    </div>
+                    <div class="summary-row">
+                        <span>Select Duration:</span>
+                        <div class="duration-selector">
+                            <button class="dur-btn" data-hours="1" data-fee="20">1 Hr (₹20)</button>
+                            <button class="dur-btn active" data-hours="2" data-fee="35">2 Hrs (₹35)</button>
+                            <button class="dur-btn" data-hours="3" data-fee="50">3 Hrs (₹50)</button>
+                        </div>
+                    </div>
+                    <div class="summary-row total-row">
+                        <span>Demo Parking Fee:</span>
+                        <strong id="demoFeeText" class="text-cyan">₹35</strong>
+                    </div>
+                </div>
+
+                <button id="proceedToDemoPayBtn" class="btn btn-primary btn-block glow-cyan-btn mt-3" data-cursor="magnet">PROCEED TO DEMO PAYMENT</button>
+            </div>
+
+            <!-- Screen 2: Simulated Payment Gateway -->
+            <div id="demoPayScreen" class="pay-modal-screen hidden">
+                <div class="modal-header text-center">
+                    <span class="badge badge-demo mb-2">RAZORPAY TEST / DEMO</span>
+                    <h3>PARKX DEMO PAYMENT</h3>
+                    <p class="text-sm text-muted">Amount: <strong id="payAmountText" class="text-cyan">₹35</strong> | Mode: <strong>DEMO MODE</strong></p>
+                </div>
+
+                <div class="demo-pay-notice text-center">
+                    <p>⚠️ <strong>NO REAL MONEY WILL BE CHARGED</strong></p>
+                    <p class="text-xs text-muted">This is a simulated transaction for science fair demonstration.</p>
+                </div>
+
+                <div class="demo-payment-options">
+                    <button class="btn btn-glass btn-block demo-pay-opt-btn" data-mode="UPI" data-cursor="hover">
+                        <span>📱 UPI DEMO</span>
+                    </button>
+                    <button class="btn btn-glass btn-block demo-pay-opt-btn" data-mode="CARD" data-cursor="hover">
+                        <span>💳 CARD DEMO</span>
+                    </button>
+                    <button id="cancelDemoPayBtn" class="btn btn-outline btn-block text-muted" data-cursor="hover">CANCEL</button>
+                </div>
+            </div>
+
+            <!-- Screen 3: Processing Animation -->
+            <div id="demoProcessingScreen" class="pay-modal-screen hidden text-center">
+                <div class="spinner-box">
+                    <div class="spinner"></div>
+                </div>
+                <h3 class="mt-3">PROCESSING PAYMENT...</h3>
+                <p class="text-sm text-muted">Simulating payment gateway authorization</p>
+            </div>
+
+            <!-- Screen 4: Payment Successful -->
+            <div id="demoSuccessScreen" class="pay-modal-screen hidden text-center">
+                <div class="success-check-box">✓</div>
+                <h3 class="mt-2 text-green">✓ PAYMENT SUCCESSFUL</h3>
+                <p class="text-sm text-muted">DEMO PAYMENT COMPLETED</p>
+
+                <div class="receipt-summary-box text-center">
+                    <p>Parking Slot: <strong id="receiptSlot">P01</strong></p>
+                    <p>Duration: <strong id="receiptDuration">2 Hours</strong></p>
+                    <p>Status: <strong class="text-green">ACTIVE</strong></p>
+                </div>
+
+                <div class="small-disclaimer-label">
+                    “Demo transaction — No real money was charged.”
+                </div>
+
+                <button id="continueToParkingBtn" class="btn btn-primary btn-block glow-cyan-btn mt-3" data-cursor="magnet">CONTINUE TO PARKING</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application Scripts -->
+    <script src="app.js"></script>
+</body>
+</html>
