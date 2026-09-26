@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARKX — Operator Authentication</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Load Auth Engine & Immediate Session Redirect Guard -->
+    <script src="auth.js"></script>
+    <script>
+        // If already authenticated, redirect directly to PARKX dashboard
+        if (typeof ParkXAuth !== 'undefined' && ParkXAuth.isAuthenticated()) {
+            window.location.replace('index.html#live-parking');
+        }
+    </script>
+</head>
+<body class="dark-theme login-body">
+
+    <!-- Custom Futuristic Cursor (Desktop Only) -->
+    <div id="customCursor" class="custom-cursor">
+        <div id="cursorDot" class="cursor-dot"></div>
+        <div id="cursorRing" class="cursor-ring">
+            <span id="cursorViewTag" class="cursor-view-tag">LOCK</span>
+        </div>
+    </div>
+
+    <!-- Cyber Background Ambience -->
+    <div class="login-cyber-backdrop">
+        <div class="login-cyber-orb orb-cyan"></div>
+        <div class="login-cyber-orb orb-green"></div>
+    </div>
+
+    <!-- Centered Glassmorphic Authentication Card -->
+    <div class="login-wrapper">
+        <div class="login-card" id="loginCard">
+            <!-- Header Section -->
+            <div class="login-header">
+                <div class="login-logo" data-cursor="hover">
+                    <div class="logo-icon">
+                        <span class="logo-p">P</span>
+                        <span class="logo-dot"></span>
+                    </div>
+                    <span class="logo-text">PARK<span class="highlight-cyan">X</span></span>
+                </div>
+
+                <div>
+                    <div class="login-badge">
+                        <span class="pulse-cyan-dot"></span>
+                        RESTRICTED ACCESS · LEVEL 4
+                    </div>
+                </div>
+
+                <h1 class="login-title">OPERATOR ACCESS</h1>
+                <p class="login-subtitle">Authenticate to access the PARKX dashboard</p>
+            </div>
+
+            <!-- Error Banner -->
+            <div id="authErrorBanner" class="auth-error-banner" role="alert">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span id="authErrorText">Invalid username or password.</span>
+            </div>
+
+            <!-- Authentication Form -->
+            <form id="loginForm" class="auth-form" autocomplete="off" novalidate>
+                <!-- Username Input -->
+                <div class="auth-form-group">
+                    <label for="usernameInput" class="auth-form-label">
+                        <span>OPERATOR ID</span>
+                        <span class="auth-label-tag">SYS-ID</span>
+                    </label>
+                    <div class="auth-input-wrapper">
+                        <span class="auth-input-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </span>
+                        <input 
+                            type="text" 
+                            id="usernameInput" 
+                            class="auth-input" 
+                            placeholder="ENTER USERNAME" 
+                            required 
+                            autofocus 
+                            autocomplete="off" 
+                            autocapitalize="off" 
+                            spellcheck="false"
+                            data-cursor="hover"
+                        />
+                    </div>
+                </div>
+
+                <!-- Password Input -->
+                <div class="auth-form-group">
+                    <label for="passwordInput" class="auth-form-label">
+                        <span>ACCESS KEY</span>
+                        <span class="auth-label-tag">SEC-KEY</span>
+                    </label>
+                    <div class="auth-input-wrapper">
+                        <span class="auth-input-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                        </span>
+                        <input 
+                            type="password" 
+                            id="passwordInput" 
+                            class="auth-input" 
+                            placeholder="ENTER PASSWORD" 
+                            required 
+                            autocomplete="off" 
+                            data-cursor="hover"
+                        />
+                        <button 
+                            type="button" 
+                            id="togglePasswordBtn" 
+                            class="auth-password-toggle" 
+                            aria-label="Toggle password visibility" 
+                            data-cursor="hover"
+                        >
+                            <svg id="eyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button 
+                    type="submit" 
+                    id="loginSubmitBtn" 
+                    class="btn btn-primary glow-cyan-btn btn-block auth-submit-btn" 
+                    data-cursor="magnet"
+                >
+                    <span id="btnText">AUTHENTICATE ACCESS</span>
+                    <svg id="btnArrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12h14M12 5l7 7-7 7"/>
+                    </svg>
+                </button>
+            </form>
+
+            <!-- Card Telemetry Footer -->
+            <div class="login-meta-footer">
+                <span class="login-telemetry-text">GATEWAY: ESP32-GATE-01 · AES-256 ENCRYPTED</span>
+                <span class="login-telemetry-text">PARKX PROTOCOL v2.4 · STRICT ACCESS ONLY</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Interaction Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('loginForm');
+            const usernameInput = document.getElementById('usernameInput');
+            const passwordInput = document.getElementById('passwordInput');
+            const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+            const eyeIcon = document.getElementById('eyeIcon');
+            const errorBanner = document.getElementById('authErrorBanner');
+            const errorText = document.getElementById('authErrorText');
+            const submitBtn = document.getElementById('loginSubmitBtn');
+            const btnText = document.getElementById('btnText');
+            const btnArrow = document.getElementById('btnArrow');
+            const loginCard = document.getElementById('loginCard');
+
+            // Custom cursor controller
+            const cursorDot = document.getElementById('cursorDot');
+            const cursorRing = document.getElementById('cursorRing');
+            let mouseX = window.innerWidth / 2;
+            let mouseY = window.innerHeight / 2;
+            let ringX = mouseX;
+            let ringY = mouseY;
+
+            window.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                if (cursorDot) {
+                    cursorDot.style.left = `${mouseX}px`;
+                    cursorDot.style.top = `${mouseY}px`;
+                }
+            });
+
+            function animateCursor() {
+                ringX += (mouseX - ringX) * 0.18;
+                ringY += (mouseY - ringY) * 0.18;
+                if (cursorRing) {
+                    cursorRing.style.left = `${ringX}px`;
+                    cursorRing.style.top = `${ringY}px`;
+                }
+                requestAnimationFrame(animateCursor);
+            }
+            requestAnimationFrame(animateCursor);
+
+            document.querySelectorAll('a, button, input, [data-cursor="hover"]').forEach(el => {
+                el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+                el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+            });
+
+            // Toggle password visibility
+            if (togglePasswordBtn && passwordInput) {
+                togglePasswordBtn.addEventListener('click', () => {
+                    const isPassword = passwordInput.type === 'password';
+                    passwordInput.type = isPassword ? 'text' : 'password';
+                    eyeIcon.innerHTML = isPassword
+                        ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>'
+                        : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+                });
+            }
+
+            // Hide error banner when typing
+            [usernameInput, passwordInput].forEach(input => {
+                input.addEventListener('input', () => {
+                    errorBanner.classList.remove('show');
+                    usernameInput.classList.remove('has-error');
+                    passwordInput.classList.remove('has-error');
+                });
+            });
+
+            // Form submission & authentication
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const username = usernameInput.value;
+                const password = passwordInput.value;
+
+                // Validate via ParkXAuth
+                const authResult = ParkXAuth.login(username, password);
+
+                if (authResult.success) {
+                    // Success state
+                    errorBanner.classList.remove('show');
+                    usernameInput.classList.remove('has-error');
+                    passwordInput.classList.remove('has-error');
+
+                    submitBtn.classList.add('success-state');
+                    submitBtn.disabled = true;
+                    btnText.textContent = 'ACCESS GRANTED ✓';
+                    if (btnArrow) btnArrow.style.display = 'none';
+
+                    // Smooth transition to PARKX dashboard
+                    setTimeout(() => {
+                        window.location.replace('index.html#live-parking');
+                    }, 400);
+                } else {
+                    // Failure state: exactly "Invalid username or password."
+                    errorText.textContent = authResult.message || 'Invalid username or password.';
+                    errorBanner.classList.remove('show');
+                    // Trigger reflow for shake animation replay
+                    void errorBanner.offsetWidth;
+                    errorBanner.classList.add('show');
+
+                    usernameInput.classList.add('has-error');
+                    passwordInput.classList.add('has-error');
+
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

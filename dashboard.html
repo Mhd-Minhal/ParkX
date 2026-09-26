@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PARKX — Live Telemetry & Control Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Mandatory Authentication Guard (Instant Pre-Render Protection) -->
+    <style id="parkxAuthShield">html { display: none !important; }</style>
+    <script src="auth.js"></script>
+    <script>
+        (function() {
+            var isAuth = (typeof ParkXAuth !== 'undefined' && ParkXAuth.isAuthenticated()) ||
+                sessionStorage.getItem('parkx_auth_session') === 'PARKX_AUTHENTICATED_SECURE_TOKEN_2026' ||
+                localStorage.getItem('parkx_auth_session') === 'PARKX_AUTHENTICATED_SECURE_TOKEN_2026';
+            if (isAuth) {
+                var shield = document.getElementById('parkxAuthShield');
+                if (shield) shield.remove();
+            } else {
+                window.location.replace('login.html');
+            }
+        })();
+        window.addEventListener('pageshow', function(e) {
+            var isAuth = (typeof ParkXAuth !== 'undefined' && ParkXAuth.isAuthenticated()) ||
+                sessionStorage.getItem('parkx_auth_session') === 'PARKX_AUTHENTICATED_SECURE_TOKEN_2026' ||
+                localStorage.getItem('parkx_auth_session') === 'PARKX_AUTHENTICATED_SECURE_TOKEN_2026';
+            if (!isAuth) {
+                document.documentElement.style.display = 'none';
+                window.location.replace('login.html');
+            }
+        });
+    </script>
+</head>
+<body class="dark-theme">
+
+    <!-- Custom Futuristic Cursor (Desktop Only) -->
+    <div id="customCursor" class="custom-cursor">
+        <div id="cursorDot" class="cursor-dot"></div>
+        <div id="cursorRing" class="cursor-ring">
+            <span id="cursorViewTag" class="cursor-view-tag">VIEW</span>
+        </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <header class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo" data-cursor="hover">
+                <div class="logo-icon">
+                    <span class="logo-p">P</span>
+                    <span class="logo-dot"></span>
+                </div>
+                <span class="logo-text">PARK<span class="highlight-cyan">X</span></span>
+            </a>
+
+            <nav class="nav-links">
+                <a href="index.html#live-parking" class="nav-item active" data-cursor="hover">Live Dashboard</a>
+                <a href="index.html#hero" class="nav-item" data-cursor="hover">3D Simulation</a>
+                <a href="index.html#how-it-works" class="nav-item" data-cursor="hover">Workflow</a>
+                <a href="index.html#hardware" class="nav-item" data-cursor="hover">Hardware</a>
+            </nav>
+
+            <div class="nav-actions">
+                <div class="user-session-badge" title="Authenticated Operator">
+                    <span class="pulse-green-dot"></span>
+                    <span class="user-session-name">PARKX</span>
+                </div>
+                <a href="index.html" class="btn btn-sm btn-primary glow-cyan-btn" data-cursor="magnet">FULL ECOSYSTEM</a>
+                <button id="logoutBtn" class="logout-btn" data-cursor="hover" title="Logout & Terminate Session">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    <span>LOGOUT</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Dashboard View -->
+    <main style="padding-top: 100px; min-height: 85vh;">
+        <section class="section">
+            <div class="container">
+                <div class="section-header text-center">
+                    <div class="pill-badge-cyan mb-2">
+                        <span class="pulse-cyan-dot"></span>
+                        RESTRICTED OPERATOR CONSOLE
+                    </div>
+                    <h1 class="section-title">PARKX / LIVE DASHBOARD</h1>
+                    <p class="section-description">Real-time telemetry, slot allocation, and hardware state monitoring.</p>
+                </div>
+
+                <div class="dashboard-grid max-w-4xl">
+                    <!-- Live Stats Strip -->
+                    <div class="telemetry-bar glass-card">
+                        <div class="stat-pill">
+                            <span class="stat-label">AVAILABLE SLOTS</span>
+                            <span class="stat-value text-cyan" id="dashAvailableCount">2 / 3</span>
+                        </div>
+                        <div class="stat-pill">
+                            <span class="stat-label">ESP32 CONTROLLER</span>
+                            <span class="stat-value text-green">● ONLINE</span>
+                        </div>
+                        <div class="stat-pill">
+                            <span class="stat-label">RFID SCANNER</span>
+                            <span class="stat-value text-green">● READY</span>
+                        </div>
+                        <div class="stat-pill">
+                            <span class="stat-label">SERVO BARRIER</span>
+                            <span class="stat-value text-green">● READY</span>
+                        </div>
+                    </div>
+
+                    <!-- 3 Slots Interactive Grid -->
+                    <div class="slots-dashboard-grid">
+                        <!-- Slot P01 -->
+                        <div class="slot-live-card glass-card available" id="dashSlotP01" data-cursor="hover">
+                            <div class="slot-card-header">
+                                <span class="slot-number">P01</span>
+                                <span class="badge badge-success status-tag">AVAILABLE</span>
+                            </div>
+                            <div class="slot-sensor-info">
+                                <span class="sensor-title">IR SENSOR</span>
+                                <span class="sensor-state text-green">CLEAR</span>
+                            </div>
+                            <div class="slot-booking-info">
+                                <span>BOOKING: <strong class="text-cyan">OPEN</strong></span>
+                            </div>
+                            <button class="btn btn-sm btn-primary glow-cyan-btn dash-book-btn" data-slot="P01" data-cursor="magnet">BOOK P01</button>
+                        </div>
+
+                        <!-- Slot P02 -->
+                        <div class="slot-live-card glass-card occupied" id="dashSlotP02">
+                            <div class="slot-card-header">
+                                <span class="slot-number">P02</span>
+                                <span class="badge badge-danger status-tag">OCCUPIED</span>
+                            </div>
+                            <div class="slot-sensor-info">
+                                <span class="sensor-title">IR SENSOR</span>
+                                <span class="sensor-state text-danger">VEHICLE PRESENT</span>
+                            </div>
+                            <div class="slot-booking-info">
+                                <span>BOOKING: <strong class="text-muted">LOCKED</strong></span>
+                            </div>
+                            <button class="btn btn-sm btn-glass text-muted dash-book-btn" disabled>OCCUPIED</button>
+                        </div>
+
+                        <!-- Slot P03 -->
+                        <div class="slot-live-card glass-card available" id="dashSlotP03" data-cursor="hover">
+                            <div class="slot-card-header">
+                                <span class="slot-number">P03</span>
+                                <span class="badge badge-success status-tag">AVAILABLE</span>
+                            </div>
+                            <div class="slot-sensor-info">
+                                <span class="sensor-title">IR SENSOR</span>
+                                <span class="sensor-state text-green">CLEAR</span>
+                            </div>
+                            <div class="slot-booking-info">
+                                <span>BOOKING: <strong class="text-cyan">OPEN</strong></span>
+                            </div>
+                            <button class="btn btn-sm btn-primary glow-cyan-btn dash-book-btn" data-slot="P03" data-cursor="magnet">BOOK P03</button>
+                        </div>
+                    </div>
+
+                    <!-- System Telemetry Event Log -->
+                    <div class="glass-card mt-4" style="padding: 1.5rem; text-align: left;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 0.75rem;">
+                            <span style="font-family: var(--font-mono); font-size: 0.85rem; font-weight: 700; color: var(--accent-cyan);">REAL-TIME SYSTEM AUDIT LOG</span>
+                            <span style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent-electric-green);">● TELEMETRY STREAMING</span>
+                        </div>
+                        <div style="font-family: var(--font-mono); font-size: 0.8rem; line-height: 1.8; color: var(--text-muted);">
+                            <div>[SYSTEM] Mandatory authentication initialized — Operator: <strong class="text-cyan">PARKX</strong></div>
+                            <div>[SYSTEM] Security clearance: Level 4 · Encryption: AES-256</div>
+                            <div>[ESP32] Node gate-01 handshake confirmed (Ping: 12ms)</div>
+                            <div>[IR-SENSORS] P01: Clear | P02: Blocked (Vehicle Detected) | P03: Clear</div>
+                            <div>[RFID] Reader RC522 status: Ready for tag scans</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" style="padding: 2rem 0; border-top: 1px solid rgba(255,255,255,0.05); text-align: center;">
+        <div class="container">
+            <p class="text-xs text-muted font-mono">PARKX © 2026 · Smart Parking Ecosystem · Confidential Operator Terminal</p>
+        </div>
+    </footer>
+
+    <!-- Dashboard Scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Cursor
+            const cursorDot = document.getElementById('cursorDot');
+            const cursorRing = document.getElementById('cursorRing');
+            let mouseX = window.innerWidth / 2;
+            let mouseY = window.innerHeight / 2;
+            let ringX = mouseX;
+            let ringY = mouseY;
+
+            window.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                if (cursorDot) {
+                    cursorDot.style.left = `${mouseX}px`;
+                    cursorDot.style.top = `${mouseY}px`;
+                }
+            });
+
+            function animateCursor() {
+                ringX += (mouseX - ringX) * 0.18;
+                ringY += (mouseY - ringY) * 0.18;
+                if (cursorRing) {
+                    cursorRing.style.left = `${ringX}px`;
+                    cursorRing.style.top = `${ringY}px`;
+                }
+                requestAnimationFrame(animateCursor);
+            }
+            requestAnimationFrame(animateCursor);
+
+            document.querySelectorAll('a, button, [data-cursor="hover"]').forEach(el => {
+                el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+                el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+            });
+
+            // Logout Handler
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    if (typeof ParkXAuth !== 'undefined') {
+                        ParkXAuth.logout();
+                    } else {
+                        sessionStorage.clear();
+                        localStorage.clear();
+                        window.location.replace('login.html');
+                    }
+                });
+            }
+
+            // Booking click handler
+            document.querySelectorAll('.dash-book-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const slot = btn.getAttribute('data-slot');
+                    window.location.href = `index.html#live-parking`;
+                });
+            });
+        });
+    </script>
+</body>
+</html>
